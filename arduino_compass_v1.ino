@@ -88,47 +88,56 @@ void loop() {
 
         //if(tick_value >= 0 && tick_value <= 360) {  // only draw tickmarks between values 0-100%, could be removed when using rotary controller
 
-          if(tick_value > 359){
+          if(tick_value - 14 > 359){
             int count = tick_value / 360;
             tick_value_tmp = tick_value - (360 * count);
           }
-          else if((tick_value - 14) <= 0){
+          else if((tick_value) <= 0){
             tick_value_tmp = tick_value + 360;
           }
           else{
             tick_value_tmp = tick_value;
           }
           
-          u8g.setColorIndex(1);                                           // set color to white   
-          u8g.setFont(u8g_font_5x7r);                                     // set very small font
-          itoa(tick_value_tmp, buffer, 10);                                          // convert FPS number to string
-          u8g.drawStr(0,10,buffer);
-
           if (tick_value_tmp % 10 == 0) {
-          //if (tick_value % 10 == 0) {                                // draw big tickmark == lines + text
             line_x =  sin(radians(angle)) * radius_line + center_x;  // calculate x pos for the line end
             line_y = -cos(radians(angle)) * radius_line + center_y;  // calculate y pos for the line end
             u8g.drawLine(pixel_x, pixel_y, line_x, line_y);          // draw the line
 
             text_x =  sin(radians(angle)) * radius_text + center_x;  // calculate x pos for the text
             text_y = -cos(radians(angle)) * radius_text + center_y;  // calculate y pos for the text 
-            itoa(tick_value_tmp, buffer, 10);                            // convert integer to string
+            if(tick_value_tmp <= 14)
+            {
+              itoa(tick_value_tmp + 346, buffer, 10);                            // convert integer to string
+            }
+            else
+            {
+              itoa(tick_value_tmp, buffer, 10);  // float to string, -- value, min. width, digits after decimal, buffer to store
+            }
+            
             string_width = u8g.getStrWidth(buffer);                  // get string width
             u8g.drawStr(text_x - string_width/2, text_y, buffer);    // draw text - tickmark value
             
           } 
           else {                                                     // draw small tickmark == pixel tickmark
             u8g.drawPixel(pixel_x, pixel_y);                         // draw a single pixel
-
-          }      
-  
+          }        
         //}
       }
     }
 
     // draw the big value on top
     u8g.setFont(u8g_font_8x13r);                      // set bigger font
-    dtostrf(tick_value_tmp - 14, 1, 1, buffer);  // float to string, -- value, min. width, digits after decimal, buffer to store
+    //dtostrf(tick_value_tmp - 14, 1, 1, buffer);  // float to string, -- value, min. width, digits after decimal, buffer to store
+    if(tick_value_tmp <= 14)
+    {
+      itoa(tick_value_tmp + 346, buffer, 10);  // float to string, -- value, min. width, digits after decimal, buffer to store
+    }
+    else
+    {
+      itoa(tick_value_tmp - 14, buffer, 10);  // float to string, -- value, min. width, digits after decimal, buffer to store
+    }
+    
     sprintf(buffer, "%s", buffer, "%");             // add some random ending character
 
     string_width = u8g.getStrWidth(buffer);           // calculate string width
@@ -144,20 +153,19 @@ void loop() {
     u8g.drawBitmapP(112, 0, 2, 4, upir_logo);  
 
     // display FPS, could be commented out for the final product
-    //u8g.setColorIndex(1);                                           // set color to white   
-    //u8g.setFont(u8g_font_5x7r);                                     // set very small font
-    //itoa(tick_value_tmp, buffer, 10);                                          // convert FPS number to string
-    //u8g.drawStr(0,10,buffer);                                       // draw the FPS number
+    u8g.setColorIndex(1);                                           // set color to white   
+    u8g.setFont(u8g_font_5x7r);                                     // set very small font
+    itoa(tick_value_tmp, buffer, 10);                                          // convert FPS number to string
+    u8g.drawStr(0,10,buffer);                                       // draw the FPS number
 
 
   } while ( u8g.nextPage() );    // required for u8g library
 
 
-  potentiometer_value = map(analogRead(A0), 0, 1023, 0, 14400);     // read the potentiometer value, remap it to 0-1000
+  potentiometer_value = map(analogRead(A0), 0, 1023, 0, 7200);     // read the potentiometer value, remap it to 0-1000
 
   millis_time_last = millis_time;                                  // store last millisecond value
   millis_time = millis();                                          // get millisecond value from the start of the program
   fps = round(7200.0/ (millis_time*1.0-millis_time_last));         // calculate FPS (frames per second) value
-
 
 }
